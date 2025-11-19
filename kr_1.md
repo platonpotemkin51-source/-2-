@@ -95,14 +95,583 @@ C++11 показал, что язык не просто жив, а активн�
 ___
 ## 2) GIT базовые сценарии использования, коммиты и то, что в них стоит писать. Ветки, конфликты и их решения.
 
+### 1. 🎯 Базовые сценарии использования Git
+
+#### Базовые команды:
+
+```
+# 1. Создать новый репозиторий
+git init
+
+# 2. Проверить статус (что изменилось?)
+git status
+
+# 3. Добавить файлы в "чемодан" (staging)
+git add file.cpp          # Добавить один файл
+git add .                 # Добавить ВСЕ файлы
+
+# 4. Сделать "фото" текущего состояния (коммит)
+git commit -m "Описание изменений"
+
+# 5. Посмотреть историю "фото"
+git log
+```
+
+### 2. ✍️ Коммиты и что в них писать
+
+#### Правила хорошего коммита:
+
+#### Формат коммита:
+```
+<тип>: <краткое описание>
+
+<подробное описание (если нужно)>
+```
+### ❌ ПЛОХО:
+```
+git commit -m "fix"
+git commit -m "changes"
+git commit -m "update"
+```
+### ✅ ХОРОШО:
+```
+git commit -m "feat: добавить класс Player с движением"
+git commit -m "fix: исправить утечку памяти в TextureLoader"
+git commit -m "docs: обновить README с инструкцией установки"
+```
+#### Типы коммитов:
+- ```feat:``` - новая функция
+
+- ```fix:``` - исправление бага
+
+- ```refactor:``` - изменение кода без нового функционала
+
+- ```docs:``` - изменение документации
+
+- ```style:``` - исправление форматирования
+
+- ```test:``` - добавление тестов
+
+### 3. 🌿 Ветки (Branches)
+
+#### Ветка - это "параллельная реальность" для вашего кода
+
+##### Основные команды:
+```
+# Посмотреть все ветки
+git branch
+
+# Создать новую ветку
+git branch feature/player-movement
+
+# Переключиться на ветку
+git checkout feature/player-movement
+
+# Создать и переключиться сразу
+git checkout -b feature/player-movement
+```
+
+#### Типичная структура веток:
+```
+main/master          ← Главная ветка (всегда стабильная)
+├── develop          ← Ветка разработки
+├── feature/player   ← Новая фича: игрок
+├── feature/enemies  ← Новая фича: враги
+└── hotfix/crash    ← Срочное исправление
+```
+#### Пример workflow:
+```
+# Начинаем новую фичу
+git checkout -b feature/player-movement
+
+# Работаем, делаем коммиты...
+git add .
+git commit -m "feat: добавить базовое движение игрока"
+
+# Когда фича готова - сливаем в develop
+git checkout develop
+git merge feature/player-movement
+```
+### 4. 💥 Конфликты и их решения
+#### Конфликт - когда Git не может сам решить, как объединить изменения
+
+###### Когда возникает конфликт:
+- Два человека изменили одни и те же строки в одном файле
+- Вы пытаетесь смержить ветки с конфликтующими изменениями
+
+#### Процесс решения конфликтов:
+
+Шаг 1: Git сообщит о конфликте
+
+```
+Auto-merging game.cpp
+CONFLICT (content): Merge conflict in game.cpp
+```
+Шаг 2: Открываем файл и видим:
+```
+void Player::move() {
+<<<<<<< HEAD
+    x += speed * 2;  // Ваша версия
+=======
+    x += speed * 1.5;  // Версия из другой ветки
+>>>>>>> feature/player-speed
+}
+```
+Шаг 3: Решаем конфликт вручную
+```
+void Player::move() {
+    x += speed * 2;  // Выбрали вашу версию
+}
+```
+Шаг 4: Сообщаем Git, что конфликт решён
+```
+# Добавляем исправленный файл
+git add game.cpp
+
+# Завершаем слияние
+git commit
+```
+### Кратко:
+1. Git init - создать репозиторий
+2. Git add - добавить файлы в "чемодан"
+3. Git commit - сделать "фото" состояния
+4. Git checkout -b - создать ветку для новой фичи
+5. Git merge - объединить ветки 
 ___
 ## 3) Устройство проекта в VStudio, подключение библиотек и версия компилятора. Строки std::string 
 
+### 1. 🏗️ Устройство проекта в Visual Studio
+#### Проект - это "Кухня для готовки кода"
+```
+МояИгра/                         ← Вся кухня (Solution)
+├── МояИгра.sln                  ← План кухни
+├── МояИгра/                     ← Рабочий стол (Project)
+│   ├── main.cpp                 ← Главный рецепт
+│   ├── Game.h                   ← Описание что готовим
+│   ├── Game.cpp                 ← Как готовим
+│   └── Resources/               ← Специи и украшения
+└── Библиотека/                  ← Ещё один стол
+    ├── Math.h                   ← Рецепт математики
+    └── Math.cpp                 ← Калькулятор
+```
+### 2. 📚 Подключение библиотек
+#### Библиотека - это "Готовый набор инструментов"
+##### Способ 1: vcpkg (проще всего)
+```
+# 1. Открываем терминал в VS (View → Terminal)
+# 2. Устанавливаем библиотеку:
+vcpkg install sfml
+```
+```cpp
+// 3. В коде просто пишем:
+#include <SFML/Graphics.hpp>
+// Всё! Библиотека готова к использованию
+```
+##### Способ 2: Ручное подключение (если скачали библиотеку)
+```cpp
+// Скачали библиотеку SFML в папку C:/Libs/SFML/
+// Нужно сказать Visual Studio:
+
+// Правая кнопка по проекту → Properties:
+// - C/C++ → General → Additional Include Directories: 
+//   Добавить: C:/Libs/SFML/include/
+
+// - Linker → General → Additional Library Directories:
+//   Добавить: C:/Libs/SFML/lib/
+
+// - Linker → Input → Additional Dependencies:
+//   Добавить: sfml-graphics.lib;sfml-window.lib;sfml-system.lib;
+
+// Теперь можно использовать!
+#include <SFML/Graphics.hpp>
+```
+### 3. ⚙️ Версия компилятора
+#### Компилятор - это "Переводчик с C++ на машинный язык"
+##### Как проверить и поменять:
+```
+Правая кнопка по проекту → Properties 
+→ C/C++ → Language → C++ Language Standard
+```
+
+### 4. 📝 Строки std::string
+#### std::string - это "Умная верёвочка с буквами"
+##### Проблема старых строк (массивы char):
+```cpp
+char name[20];              // Верёвочка длиной 20 букв
+strcpy(name, "Вася");       // Копируем "В-а-с-я"
+// Ой! Если имя длиннее 20 букв - ВСЁ СЛОМАЕТСЯ! 
+```
+##### Решение: std::string
+```cpp
+std::string name = "Вася";  // Умная верёвочка САМА растёт!
+name += " Петрович";        // Добавили фамилию - верёвочка выросла!
+name = "Александр";         // Длинное имя - верёвочка растянулась!
+```
+##### Основные операции с std::string:
+```cpp
+#include <iostream>
+#include <string>          // Не забудьте подключить!
+
+int main() {
+    // Создание строк
+    std::string hello = "Привет";
+    std::string world = "мир";
+    
+    // Сложение строк
+    std::string message = hello + " " + world + "!";
+    // Результат: "Привет мир!"
+    
+    // Длина строки
+    int length = message.length();  // Узнать длину
+    
+    // Сравнение строк
+    if (hello == "Привет") {
+        std::cout << "Это приветствие!" << std::endl;
+    }
+    
+    // Поиск в строке
+    size_t pos = message.find("мир");  // Найти позицию "мир"
+    
+    // Вывод строки
+    std::cout << message << std::endl;
+    
+    // Ввод строки
+    std::string user_name;
+    std::cout << "Как вас зовут? ";
+    std::cin >> user_name;
+    
+    return 0;
+}
+```
+##### Полезные методы std::string:
+```cpp
+std::string text = "Hello C++ World";
+
+// Получить подстроку
+std::string part = text.substr(6, 3);  // "C++"
+
+// Заменить часть строки
+text.replace(0, 5, "Hi");  // "Hi C++ World"
+
+// Проверить пустая ли строка
+if (text.empty()) { /* ... */ }
+
+// Преобразовать в число
+std::string number_str = "123";
+int number = std::stoi(number_str);  // 123
+```
 ___
 ## 4) Примитивные типы данных.  Переменные и их способы объявления. Преобразование типов. Автоматически вывод типов.
 
+## 1. 📦 Примитивные (встроенные) типы данных
+
+### Основные типы:
+
+| Тип | Размер | Диапазон | Пример |
+|-----|--------|-----------|---------|
+| `int` | 4 байта | -2×10⁹ до +2×10⁹ | `5`, `-10`, `1000` |
+| `float` | 4 байта | ±3.4×10³⁸ | `3.14f`, `-2.5f` |
+| `double` | 8 байт | ±1.7×10³⁰⁸ | `3.141592`, `-2.5` |
+| `char` | 1 байт | -128 до 127 | `'A'`, `'1'`, `'$'` |
+| `bool` | 1 байт | true/false | `true`, `false` |
+| `void` | - | отсутствует | - |
+
+### Модификаторы целых чисел:
+
+```cpp
+// Разные размеры целых чисел
+short small = 100;           // 2 байта (-32k до +32k)
+int normal = 100000;         // 4 байта  
+long big = 1000000L;         // 4 или 8 байт
+long long huge = 1000000000LL; // 8 байт
+
+// Беззнаковые версии (только ≥0)
+unsigned short us = 65000U;
+unsigned int ui = 40000U;
+unsigned long ul = 1000000UL;
+```
+### 2. 🏷️ Способы объявления переменных
+```cpp
+int x;          // объявление без инициализации
+x = 10;         // присваивание позже
+
+int y = 20;     // объявление с инициализацией
+double z = 3.14;
+```
+```cpp
+int x{10};              // прямая инициализация
+double y{3.14};        
+char z{'A'};
+bool flag{true};
+
+// Защита от narrowing conversion
+int a{100};            // OK
+// int b{100.5};       // ОШИБКА! Потеря данных
+```
+```cpp
+int x = {10};           // со знаком равенства
+double y = {3.14};
+```
+```cpp
+int x(10);              // в скобках
+double y(3.14);
+```
+### 3. 🔄 Преобразование типов (Casting)
+#### Неявное преобразование (автоматическое):
+```cpp
+int integer = 10;
+double decimal = integer;       // 10 → 10.0 (расширение)
+
+double price = 19.99;
+int intPrice = price;           // 19.99 → 19 (сужение, потеря данных!)
+
+char symbol = 'A';
+int ascii = symbol;             // 'A' → 65
+```
+#### Явное преобразование:
+```cpp
+double price = 19.99;
+int intPrice = (int)price;      // 19.99 → 19
+
+char symbol = 'A';
+int ascii = (int)symbol;        // 'A' → 65
+```
+#### static_cast (рекомендуется) ✅:
+```cpp
+
+double price = 19.99;
+int intPrice = static_cast<int>(price);  // 19.99 → 19
+
+float floatNum = 3.14f;
+int intNum = static_cast<int>(floatNum); // 3.14 → 3
+
+int number = 65;
+char symbol = static_cast<char>(number); // 65 → 'A'
+```
+### 4. Автоматический вывод типов (auto)
+#### Ключевое слово ```auto```:
+```cpp
+// Компилятор сам определяет тип
+auto x = 10;            // int
+auto y = 3.14;          // double  
+auto z = 2.71f;         // float
+auto letter = 'A';      // char
+auto flag = true;       // bool
+auto name = "Hello";    // const char*
+```
+#### auto с uniform initialization:
+```cpp
+// Для однозначности можно указывать суффиксы
+auto a = 10U;       // unsigned int
+auto b = 3.14f;     // float
+auto c = 100LL;     // long long
+```
 ___
 ## 5) Ветвления if switch. Самые часто используемые контейнеры(std::vector, std::unordered_map, массивы).
+### 1. Ветвления: if-else
+
+#### Базовый синтаксис:
+
+```cpp
+if (условие) {
+    // код выполнится если условие истинно
+} else if{
+    // код выполнится если условие ложно
+}else {
+    // код выполнится если условие ложно
+}
+```
+```cpp
+condition ? expression1 : expression2
+```
+#### 2. Ветвления: switch-case
+
+```cpp
+switch (переменная) {
+    case значение1:
+        // код для значение1
+        break;
+    case значение2:
+        // код для значение2
+        break;
+    default:
+        // код если ни один case не подошел
+}
+```
+### 3. Массивы (C-style arrays)
+```cpp
+#include <iostream>
+
+int main() {
+    // Статический массив
+    int numbers[5] = {1, 2, 3, 4, 5};
+    
+    // Доступ к элементам
+    std::cout << "Первый элемент: " << numbers[0] << std::endl;
+    std::cout << "Последний элемент: " << numbers[4] << std::endl;
+    
+    // Изменение элементов
+    numbers[2] = 100;
+    
+    // Перебор массива
+    for (int i = 0; i < 5; ++i) {
+        std::cout << numbers[i] << " ";
+    }
+    std::cout << std::endl;
+    
+    // Массив без указания размера
+    double temperatures[] = {25.5, 26.0, 24.8, 23.5};
+    int size = sizeof(temperatures) / sizeof(temperatures[0]);
+    
+    std::cout << "Количество элементов: " << size << std::endl;
+    
+    // Range-based for (C++11)
+    for (double temp : temperatures) {
+        std::cout << temp << " ";
+    }
+    std::cout << std::endl;
+    
+    return 0;
+}
+```
+##### Ограничения массивов:
+- Фиксированный размер
+- Нет встроенных методов
+- Нельзя возвращать из функции как есть
+
+### 4. 🚀 std::vector (динамический массив)
+```cpp
+#include <iostream>
+#include <vector>
+
+int main() {
+    // Создание вектора
+    std::vector<int> numbers = {1, 2, 3, 4, 5};
+    
+    // Добавление элементов
+    numbers.push_back(6);           // в конец
+    numbers.insert(numbers.begin(), 0); // в начало
+    
+    // Доступ к элементам
+    std::cout << "Первый: " << numbers.front() << std::endl;
+    std::cout << "Последний: " << numbers.back() << std::endl;
+    std::cout << "По индексу: " << numbers[2] << std::endl;
+    
+    // Размер и емкость
+    std::cout << "Размер: " << numbers.size() << std::endl;
+    std::cout << "Емкость: " << numbers.capacity() << std::endl;
+    
+    // Удаление элементов
+    numbers.pop_back();             // с конца
+    numbers.erase(numbers.begin()); // с начала
+    
+    // Перебор элементов
+    for (int i = 0; i < numbers.size(); ++i) {
+        std::cout << numbers[i] << " ";
+    }
+    std::cout << std::endl;
+    
+    // Range-based for
+    for (int num : numbers) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+    
+    // Автовывод типа
+    for (auto num : numbers) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+    
+    return 0;
+}
+```
+#### Полезные методы vector:
+```cpp
+#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<std::string> names;
+    
+    // Проверка на пустоту
+    if (names.empty()) {
+        std::cout << "Вектор пуст" << std::endl;
+    }
+    
+    // Добавление элементов
+    names.push_back("Alice");
+    names.push_back("Bob");
+    names.push_back("Charlie");
+    
+    // Изменение размера
+    names.resize(5, "Unknown"); // Увеличить до 5, новые = "Unknown"
+    
+    // Очистка
+    // names.clear();
+    
+    // Поиск (через алгоритмы)
+    auto it = std::find(names.begin(), names.end(), "Bob");
+    if (it != names.end()) {
+        std::cout << "Найден: " << *it << std::endl;
+    }
+    
+    // Резервирование памяти
+    std::vector<int> bigVector;
+    bigVector.reserve(1000); // Зарезервировать место для 1000 элементов
+    
+    return 0;
+}
+```
+### 5. 🗂️ std::unordered_map (хэш-таблица)
+#### Быстрый поиск по ключу:
+```cpp
+#include <iostream>
+#include <unordered_map>
+#include <string>
+
+int main() {
+    // Создание словаря
+    std::unordered_map<std::string, int> ages;
+    
+    // Добавление элементов
+    ages["Alice"] = 25;
+    ages["Bob"] = 30;
+    ages["Charlie"] = 35;
+    
+    // Или так
+    ages.insert({"David", 40});
+    
+    // Доступ к элементам
+    std::cout << "Возраст Alice: " << ages["Alice"] << std::endl;
+    
+    // Проверка существования ключа
+    if (ages.find("Eve") != ages.end()) {
+        std::cout << "Eve существует" << std::endl;
+    } else {
+        std::cout << "Eve не найдена" << std::endl;
+    }
+    
+    // Безопасный доступ (не создает элемент)
+    auto it = ages.find("Bob");
+    if (it != ages.end()) {
+        std::cout << "Bob: " << it->second << std::endl;
+    }
+    
+    // Перебор всех элементов
+    for (const auto& pair : ages) {
+        std::cout << pair.first << ": " << pair.second << std::endl;
+    }
+    
+    // Размер
+    std::cout << "Количество элементов: " << ages.size() << std::endl;
+    
+    // Удаление
+    ages.erase("Alice");
+    
+    return 0;
+}
+```
 
 ___
 ## 6) Обходы коллекций while, for, range_based и итераторы. 
@@ -111,7 +680,77 @@ ___
 ## 7) Функции и их типы. Передача аргументы по ссылке и по значению.  Анонимные функции.
 
 ___
-## 😍 Указатели умные и сырые.
+## 8) Указатели умные и сырые.
+### 1. 📍 Сырые указатели (Raw Pointers)
+
+#### Основные операции:
+- ```*``` - разыменование (доступ к значению)
+- ```&``` - взятие адреса
+- ```->``` - доступ к членам класса через указатель
+
+#### Базовые операции с указателями
+##### Объявление и инициализация:
+```cpp
+#include <iostream>
+
+int main() {
+    int number = 42;        // обычная переменная
+    int* pointer = &number; // указатель, хранящий адрес number
+    
+    std::cout << "Значение number: " << number << std::endl;        // 42
+    std::cout << "Адрес number: " << &number << std::endl;         // 0x7ff...
+    std::cout << "Значение pointer: " << pointer << std::endl;     // тот же адрес
+    std::cout << "Разыменование pointer: " << *pointer << std::endl; // 42
+    
+    return 0;
+}
+```
+##### Изменение через указатель:
+```cpp
+#include <iostream>
+
+int main() {
+    int score = 100;
+    int* scorePtr = &score;
+    
+    std::cout << "Исходное значение: " << score << std::endl; // 100
+    
+    // Меняем значение через указатель
+    *scorePtr = 200;
+    
+    std::cout << "Новое значение: " << score << std::endl; // 200
+    std::cout << "Через указатель: " << *scorePtr << std::endl; // 200
+    
+    return 0;
+}
+```
+#### Указательная арифметика
+##### Работа с массивами:
+
+```cpp
+#include <iostream>
+
+int main() {
+    int numbers[5] = {10, 20, 30, 40, 50};
+    int* ptr = numbers; // ptr указывает на первый элемент
+    
+    std::cout << "Первый элемент: " << *ptr << std::endl; // 10
+    
+    // Перемещение по массиву
+    ptr++; // переходим к следующему элементу
+    std::cout << "Второй элемент: " << *ptr << std::endl; // 20
+    
+    ptr += 2; // переходим на 2 элемента вперед
+    std::cout << "Четвертый элемент: " << *ptr << std::endl; // 40
+    
+    ptr--; // возвращаемся на один элемент назад
+    std::cout << "Третий элемент: " << *ptr << std::endl; // 30
+    
+    return 0;
+}
+```
+### 2. 🧠 Умные указатели 
+#### std::unique_ptr - эксклюзивное владение:
 
 
 ___
