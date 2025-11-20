@@ -994,7 +994,74 @@ const std::string& getConstantString() {
 ```
 ### 6. Анонимные функции (лямбды)
 ##### Базовая лямбда:
+```
+auto name_function = [closure] (VType variable, …) {
+    realization;
+};
+```
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
 
+int main() {
+    // Простая лямбда
+    auto hello = []() {
+        std::cout << "Hello from lambda!" << std::endl;
+    };
+    hello(); // Вызов лямбды
+    
+    // Лямбда с параметрами
+    auto add = [](int a, int b) {
+        return a + b;
+    };
+    std::cout << "5 + 3 = " << add(5, 3) << std::endl;
+}
+```
+##### Захват переменных:
+```cpp
+int main() {
+    int x = 10;
+    int y = 20;
+    
+    // Захват по значению
+    auto captureByValue = [x]() {
+        std::cout << "x = " << x << std::endl;
+        // x = 5; // Ошибка - x захвачен по значению (const)
+    };
+    
+    // Захват по ссылке
+    auto captureByReference = [&y]() {
+        y = 100; // Меняет оригинальную переменную
+        std::cout << "y = " << y << std::endl;
+    };
+    
+    // Захват всех переменных по значению
+    auto captureAllByValue = [=]() {
+        std::cout << "x = " << x << ", y = " << y << std::endl;
+    };
+    
+    // Захват всех переменных по ссылке
+    auto captureAllByReference = [&]() {
+        x = 1;
+        y = 2;
+    };
+}
+```
+##### Лямбды с возвращаемым типом:
+```cpp
+int main() {
+    // Явное указание возвращаемого типа
+    auto complexLambda = [](double a, double b) -> double {
+        if (b != 0) {
+            return a / b;
+        }
+        return 0;
+    };
+    
+    std::cout << complexLambda(10.0, 3.0) << std::endl;
+}
+```
 ___
 ## 8) Указатели умные и сырые.
 ### 1. 📍 Сырые указатели (Raw Pointers)
@@ -1150,3 +1217,542 @@ if (auto temp = observer.lock()) {
 
 ___
 ## 9) Структуры,  перечисления, классы, спецификация доступа. Инкапсуляция и параметрический полиморфизм. Заголовочные файлы и фалы реализации
+
+### 1. Структуры (struct)
+
+Структуры - это композитные типы данных, объединяющие несколько переменных.
+
+```cpp
+#include <iostream>
+#include <string>
+
+// Объявление структуры
+struct Person {
+    // По умолчанию в struct все поля PUBLIC
+    std::string name;
+    int age;
+    double height;
+    
+    // Методы в структуре
+    void printInfo() {
+        std::cout << "Name: " << name << ", Age: " << age 
+                  << ", Height: " << height << std::endl;
+    }
+};
+
+int main() {
+    // Создание экземпляра структуры
+    Person person1;
+    person1.name = "Alice";
+    person1.age = 25;
+    person1.height = 165.5;
+    
+    // Инициализация при создании
+    Person person2 = {"Bob", 30, 180.0};
+    
+    person1.printInfo();
+    person2.printInfo();
+}
+```
+### 2. Перечисления (enum)
+
+**Перечисления** - типы данных, состоящие из именованных констант.
+
+#### Обычные перечисления:
+```cpp
+enum Color {
+    RED,    // 0
+    GREEN,  // 1
+    BLUE    // 2
+};
+
+enum Status {
+    PENDING = 10,
+    PROCESSING,  // 11
+    COMPLETED = 20
+};
+```
+#### Scoped enumerations (C++11):
+```cpp
+enum class FileStatus {
+    OPEN,      // FileStatus::OPEN
+    CLOSED,    // FileStatus::CLOSED
+    ERROR      // FileStatus::ERROR
+};
+
+enum class TrafficLight : char {
+    RED = 'R',
+    YELLOW = 'Y',
+    GREEN = 'G'
+};
+
+int main() {
+    Color color = RED;
+    FileStatus status = FileStatus::OPEN;
+    
+    if (color == RED) {
+        std::cout << "Color is red" << std::endl;
+    }
+    
+    if (status == FileStatus::OPEN) {
+        std::cout << "File is open" << std::endl;
+    }
+}
+```
+
+### 3. Классы и спецификация доступа
+
+**Классы** - основа ООП в C++, похожи на структуры, но по умолчанию имеют private доступ.
+
+#### Базовый класс:
+
+Пример класса:
+
+```cpp
+class BankAccount {
+private:    // Доступ только внутри класса
+    std::string accountNumber;
+    double balance;
+    std::string password;
+
+protected:  // Доступ внутри класса и наследников
+    double creditLimit;
+
+public:     // Доступ отовсюду
+    // Конструктор
+    BankAccount(const std::string& accNum, double initialBalance, const std::string& pwd) 
+        : accountNumber(accNum), balance(initialBalance), password(pwd), creditLimit(1000) {}
+    
+    // Методы
+    void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+        }
+    }
+    
+    bool withdraw(double amount) {
+        if (amount > 0 && (balance + creditLimit) >= amount) {
+            balance -= amount;
+            return true;
+        }
+        return false;
+    }
+    
+    double getBalance() const {
+        return balance;
+    }
+    
+    // const метод - не изменяет состояние объекта
+    void displayInfo() const {
+        std::cout << "Account: " << accountNumber 
+                  << ", Balance: " << balance << std::endl;
+        // password = "new"; // Ошибка! const метод
+    }
+};
+```
+Разбор класса:
+
+##### Private (закрытые члены):
+```cpp
+private:
+    std::string accountNumber;  // номер счета
+    double balance;             // баланс
+    std::string password;       // пароль
+```
+**Что это значит:**
+- Доступны только внутри класса
+- Скрыты от внешнего мира
+- Защищают данные от неправильного использования
+
+```cpp
+int main() {
+    BankAccount account("12345", 1000.0, "secret");
+    
+    // НЕВОЗМОЖНО извне класса:
+    // std::cout << account.balance;       // Ошибка компиляции!
+    // account.password = "newpass";       // Ошибка компиляции!
+    // account.accountNumber = "67890";    // Ошибка компиляции!
+}
+```
+###### Protected (защищенные члены):
+```cpp
+protected:
+    double creditLimit;  // кредитный лимит
+```
+**Что это значит:**
+- Доступны внутри класса и в классах-наследниках
+- Скрыты от внешнего мира
+
+##### Public (публичные члены):
+
+```cpp
+public:
+    // Конструктор и методы доступны отовсюду
+```
+**Что это значит:**
+- Доступны из любого места программы
+- Формируют публичный интерфейс класса
+
+##### Конструктор
+```cpp
+BankAccount(const std::string& accNum, double initialBalance, const std::string& pwd) 
+    : accountNumber(accNum), balance(initialBalance), password(pwd), creditLimit(1000) {}
+```
+##### Детальный разбор:
+- Список инициализации (: accountNumber(accNum), ...)
+- - Инициализирует поля до входа в тело конструктора
+- Более эффективно, чем присваивание в теле
+- - Параметры по константной ссылке (const std::string&)
+- Избегаем копирования больших объектов
+- - const гарантирует, что оригинальные данные не изменятся
+- Значение по умолчанию: creditLimit(1000)
+- - Все счета создаются с кредитным лимитом 1000
+
+##### Методы класса
+```cpp
+void deposit(double amount) {
+    if (amount > 0) {
+        balance += amount;
+    }
+}
+double getBalance() const {
+    return balance;
+}
+```
+```cpp
+int main() {
+    const BankAccount readonlyAccount("123", 500, "pass");
+    
+    // Можно вызывать только const методы:
+    double bal = readonlyAccount.getBalance();    // OK
+    // readonlyAccount.deposit(100);              // Ошибка!
+}
+```
+
+### Принципы инкапсуляции в действии
+#### Защита данных:
+```cpp
+// БЕЗ инкапсуляции (опасно):
+class BadBankAccount {
+public:
+    double balance; // Публичное поле!
+};
+
+// Можно делать что угодно:
+BadBankAccount acc;
+acc.balance = -1000; // Отрицательный баланс!
+acc.balance = 1e9;   // Неправдоподобно большой баланс!
+
+// С инкапсуляцией (безопасно):
+BankAccount goodAcc("123", 100, "pass");
+// goodAcc.balance = -1000; // Ошибка компиляции!
+// Контроль через методы:
+goodAcc.deposit(500);     // Только положительные суммы
+goodAcc.withdraw(50);     // Проверка достаточности средств
+```
+#### Валидация данных:
+```cpp
+// В реальном классе можно добавить больше проверок:
+void BankAccount::setCreditLimit(double newLimit) {
+    if (newLimit >= 0 && newLimit <= 10000) { // Разумные пределы
+        creditLimit = newLimit;
+    } else {
+        std::cout << "Invalid credit limit!" << std::endl;
+    }
+}
+```
+
+### Параметрический полиморфизм
+**Параметрический полиморфизм** - возможность работать с разными типами данных, используя один и тот же код через шаблоны.
+
+#### Шаблонные функции:
+```cpp
+#include <iostream>
+#include <vector>
+#include <string>
+
+// Функция работает с ЛЮБЫМ типом, поддерживающим оператор >
+template<typename T>
+T findMax(const T& a, const T& b) {
+    return (a > b) ? a : b;
+}
+
+// Функция работает с двумя разными типами
+template<typename T1, typename T2>
+void printPair(const T1& first, const T2& second) {
+    std::cout << "Pair: (" << first << ", " << second << ")" << std::endl;
+}
+
+// Шаблонная функция с специализацией логики
+template<typename T>
+bool areEqual(const T& a, const T& b) {
+    return a == b;
+}
+
+// Специализация для double (с учетом погрешности)
+template<>
+bool areEqual<double>(const double& a, const double& b) {
+    return std::abs(a - b) < 0.0001;
+}
+
+int main() {
+    // Работа с разными типами
+    std::cout << findMax(10, 20) << std::endl;           // int
+    std::cout << findMax(3.14, 2.71) << std::endl;       // double
+    std::cout << findMax('a', 'z') << std::endl;         // char
+    std::cout << findMax(std::string("apple"), std::string("banana")) << std::endl; // string
+    
+    printPair(42, "hello");
+    printPair(3.14, true);
+    
+    std::cout << "Doubles equal: " << areEqual(1.00001, 1.00002) << std::endl; // 1 (true)
+}
+```
+#### Шаблонные классы:
+```cpp
+#include <iostream>
+#include <vector>
+#include <stdexcept>
+
+// Класс-контейнер для ЛЮБОГО типа
+template<typename T>
+class Stack {
+private:
+    std::vector<T> elements;
+    size_t capacity;
+
+public:
+    Stack(size_t maxSize = 100) : capacity(maxSize) {}
+    
+    // Инкапсуляция + параметрический полиморфизм
+    void push(const T& element) {
+        if (elements.size() >= capacity) {
+            throw std::overflow_error("Stack is full");
+        }
+        elements.push_back(element);
+    }
+    
+    T pop() {
+        if (elements.empty()) {
+            throw std::runtime_error("Stack is empty");
+        }
+        T top = elements.back();
+        elements.pop_back();
+        return top;
+    }
+    
+    const T& peek() const {
+        if (elements.empty()) {
+            throw std::runtime_error("Stack is empty");
+        }
+        return elements.back();
+    }
+    
+    bool isEmpty() const {
+        return elements.empty();
+    }
+    
+    size_t size() const {
+        return elements.size();
+    }
+};
+
+// Специализация для bool (оптимизация памяти)
+template<>
+class Stack<bool> {
+private:
+    std::vector<unsigned char> bits; // Храним биты
+    size_t capacity;
+
+public:
+    Stack(size_t maxSize = 100) : capacity(maxSize) {}
+    
+    void push(bool element) {
+        if (bits.size() * 8 >= capacity) {
+            throw std::overflow_error("Stack is full");
+        }
+        // Специфичная логика для bool
+        if (bits.empty() || (bits.back() & 1) != 0) {
+            bits.push_back(element ? 1 : 0);
+        } else {
+            // Оптимизированное хранение...
+        }
+    }
+    
+    // ... остальные методы с оптимизацией для bool
+};
+
+int main() {
+    // Один интерфейс - разные типы
+    Stack<int> intStack;
+    Stack<std::string> stringStack;
+    Stack<double> doubleStack(50); // с ограничением размера
+    
+    intStack.push(42);
+    intStack.push(100);
+    
+    stringStack.push("hello");
+    stringStack.push("world");
+    
+    doubleStack.push(3.14);
+    
+    std::cout << "Int stack top: " << intStack.peek() << std::endl;
+    std::cout << "String stack top: " << stringStack.peek() << std::endl;
+}
+```
+### Заголовочные файлы и фалы реализации
+#### 1. Основная концепция
+
+**Структура проекта:**
+```
+project/
+├── include/           # Заголовочные файлы (.h, .hpp)
+│   └── math_operations.h:
+├── src/              # Файлы реализации (.cpp)
+│   ├── main.cpp
+│   └── math_operations.cpp
+└── bin/              # Скомпилированные файлы
+```
+#### 2. Заголовочные файлы (.h, .hpp)
+
+**Назначение:**
+
+- Объявления классов, функций, структур
+- Определения шаблонов
+- Константы, макросы
+- НЕ должна быть логика реализации (за исключением inline функций)
+
+*math_operations.h:*
+```cpp
+#ifndef MATH_OPERATIONS_H  // Include guard - защита от многократного включения
+#define MATH_OPERATIONS_H
+
+#include <string>  // Только необходимые включения
+
+// Объявления функций
+int add(int a, int b);
+double add(double a, double b);
+int multiply(int a, int b);
+
+// Объявление класса
+class Calculator {
+private:
+    std::string name;
+    int operationCount;
+
+public:
+    // Конструктор
+    Calculator(const std::string& calculatorName);
+    
+    // Методы
+    double calculate(double a, double b, char operation);
+    void displayInfo() const;
+    int getOperationCount() const;
+    
+    // Inline метод (можно реализовать в заголовке)
+    const std::string& getName() const { return name; }
+};
+
+// Шаблонные функции (реализация в заголовке)
+template<typename T>
+T max(const T& a, const T& b) {
+    return (a > b) ? a : b;
+}
+
+// Константы
+constexpr double PI = 3.14159265358979323846;
+
+#endif // MATH_OPERATIONS_H
+```
+#### 3. Файлы реализации (.cpp)
+
+**Назначение:**
+
+- Реализация функций и методов
+- Логика программы
+- НЕ должно быть повторных объявлений
+
+*math_operations.cpp:*
+
+```cpp
+#include "math_operations.h"  // Включаем соответствующий заголовок
+#include <iostream>
+#include <stdexcept>
+
+// Реализация функций
+int add(int a, int b) {
+    return a + b;
+}
+
+double add(double a, double b) {
+    return a + b;
+}
+
+int multiply(int a, int b) {
+    return a * b;
+}
+
+// Реализация методов класса Calculator
+Calculator::Calculator(const std::string& calculatorName) 
+    : name(calculatorName), operationCount(0) {
+    std::cout << "Calculator '" << name << "' created" << std::endl;
+}
+
+double Calculator::calculate(double a, double b, char operation) {
+    operationCount++;
+    
+    switch (operation) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/':
+            if (b == 0) throw std::runtime_error("Division by zero");
+            return a / b;
+        default:
+            throw std::invalid_argument("Unknown operation");
+    }
+}
+
+void Calculator::displayInfo() const {
+    std::cout << "Calculator: " << name 
+              << ", Operations performed: " << operationCount << std::endl;
+}
+
+int Calculator::getOperationCount() const {
+    return operationCount;
+}
+```
+### 4. Main файл
+
+*main.cpp:*
+```cpp
+#include "math_operations.h"  // Подключаем наш заголовок
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int main() {
+    // Использование функций
+    cout << "5 + 3 = " << add(5, 3) << endl;
+    cout << "2.5 + 3.7 = " << add(2.5, 3.7) << endl;
+    
+    // Использование класса
+    Calculator calc("Scientific Calculator");
+    
+    try {
+        double result = calc.calculate(10, 2, '/');
+        cout << "10 / 2 = " << result << endl;
+    } catch (const exception& e) {
+        cout << "Error: " << e.what() << endl;
+    }
+    
+    calc.displayInfo();
+    
+    // Использование шаблонной функции
+    cout << "Max of 5 and 10: " << max(5, 10) << endl;
+    cout << "Max of 3.14 and 2.71: " << max(3.14, 2.71) << endl;
+    
+    return 0;
+}
+```
