@@ -675,9 +675,325 @@ int main() {
 
 ___
 ## 6) Обходы коллекций while, for, range_based и итераторы. 
+### 1. Цикл while
+```cpp
+#include <vector>
+#include <iostream>
 
+int main() {
+    std::vector<int> numbers = {1, 2, 3, 4, 5};
+    
+    // Используем индекс
+    size_t i = 0;
+    while (i < numbers.size()) {
+        std::cout << numbers[i] << " ";
+        i++;
+    }
+    // Вывод: 1 2 3 4 5
+    
+    // Используем итераторы (более современный подход)
+    auto it = numbers.begin();
+    while (it != numbers.end()) {
+        std::cout << *it << " ";
+        it++;
+    }
+    // Вывод: 1 2 3 4 5
+}
+```
+### 2. Цикл for (классический)
+
+Наиболее гибкий способ с явным управлением индексом/итератором:
+
+```cpp
+#include <vector>
+#include <list>
+#include <iostream>
+
+int main() {
+    std::vector<int> numbers = {1, 2, 3, 4, 5};
+    
+    // С использованием индекса
+    for (size_t i = 0; i < numbers.size(); i++) {
+        std::cout << numbers[i] << " ";
+    }
+    // Вывод: 1 2 3 4 5
+    
+    // С использованием итераторов
+    for (auto it = numbers.begin(); it != numbers.end(); it++) {
+        std::cout << *it << " ";
+    }
+    // Вывод: 1 2 3 4 5
+    
+    // Для списка (где нет оператора [])
+    std::list<int> lst = {1, 2, 3};
+    for (auto it = lst.begin(); it != lst.end(); it++) {
+        std::cout << *it << " ";
+    }
+    // Вывод: 1 2 3
+}
+```
+### 3. Range-based for (основанный на диапазоне)
+
+Современный и лаконичный способ (появился в C++11):
+
+```cpp
+#include <vector>
+#include <map>
+#include <iostream>
+
+int main() {
+    std::vector<int> numbers = {1, 2, 3, 4, 5};
+    
+    // Простой обход по значению (копирование)
+    for (int num : numbers) {
+        std::cout << num << " ";
+    }
+    // Вывод: 1 2 3 4 5
+    
+    // Обход по ссылке (без копирования)
+    for (int& num : numbers) {
+        num *= 2;  // Можем изменять элементы
+    }
+    
+    // Обход по константной ссылке (только чтение)
+    for (const int& num : numbers) {
+        std::cout << num << " ";
+    }
+    // Вывод: 2 4 6 8 10
+    
+    // Для map (ассоциативных контейнеров)
+    std::map<std::string, int> ages = {{"Alice", 25}, {"Bob", 30}};
+    for (const auto& pair : ages) {
+        std::cout << pair.first << ": " << pair.second << std::endl;
+    }
+    // Вывод: Alice: 25
+    //        Bob: 30
+    
+    // C++17 - structured bindings
+    for (const auto& [name, age] : ages) {
+        std::cout << name << ": " << age << std::endl;
+    }
+}
+```
+### 4. Итераторы
+
+Универсальный механизм для доступа к элементам контейнеров:
+
+#### Типы итераторов:
+```cpp
+#include <vector>
+#include <iostream>
+
+int main() {
+    std::vector<int> numbers = {1, 2, 3, 4, 5};
+    
+    // Forward iterator (можно двигаться только вперед)
+    for (auto it = numbers.begin(); it != numbers.end(); it++) {
+        std::cout << *it << " ";
+    }
+    
+    // Reverse iterator (обход в обратном порядке)
+    for (auto it = numbers.rbegin(); it != numbers.rend(); it++) {
+        std::cout << *it << " ";
+    }
+    // Вывод: 5 4 3 2 1
+    
+    // Const iterator (только для чтения)
+    for (auto it = numbers.cbegin(); it != numbers.cend(); it++) {
+        // *it = 10; // Ошибка компиляции!
+        std::cout << *it << " ";
+    }
+}
+```
+### 5. Алгоритмы STL с итераторами *
+
+Функциональный подход к обработке коллекций:
+
+```cpp
+#include <vector>
+#include <algorithm>
+#include <iostream>
+
+int main() {
+    std::vector<int> numbers = {1, 2, 3, 4, 5};
+    
+    // for_each - применение функции к каждому элементу
+    std::for_each(numbers.begin(), numbers.end(), [](int n) {
+        std::cout << n << " ";
+    });
+    
+    // transform - преобразование элементов
+    std::vector<int> doubled;
+    std::transform(numbers.begin(), numbers.end(), 
+                   std::back_inserter(doubled),
+                   [](int n) { return n * 2; });
+    
+    // find - поиск элемента
+    auto found = std::find(numbers.begin(), numbers.end(), 3);
+    if (found != numbers.end()) {
+        std::cout << "Found: " << *found << std::endl;
+    }
+}
+```
 ___
 ## 7) Функции и их типы. Передача аргументы по ссылке и по значению.  Анонимные функции.
+
+### 1. Основы функций
+
+Простая функция:
+
+```cpp
+#include <iostream>
+
+// Объявление функции
+int add(int a, int b);
+
+// Определение функции
+int add(int a, int b) {
+    return a + b;
+}
+
+int main() {
+    int result = add(5, 3); // Вызов функции
+    std::cout << "Result: " << result << std::endl; // Result: 8
+}
+```
+### 2. Типы функций
+
+#### Функция без возвращаемого значения:
+```cpp
+void printHello() {
+    std::cout << "Hello!" << std::endl;
+}
+
+void printNumber(int num) {
+    std::cout << "Number: " << num << std::endl;
+}
+```
+
+#### Функция с возвращаемым значением:
+
+```cpp
+double calculateCircleArea(double radius) {
+    return 3.14159 * radius * radius;
+}
+
+bool isEven(int number) {
+    return number % 2 == 0;
+}
+```
+
+#### Функция с несколькими параметрами:
+
+```cpp
+#include <string>
+
+std::string createGreeting(const std::string& name, int age) {
+    return "Hello, " + name + "! You are " + std::to_string(age) + " years old.";
+}
+```
+### 3. Передача аргументов
+#### По значению (копирование):
+```cpp
+void modifyValue(int x) {
+    x = 100; // Изменяется копия, оригинал не меняется
+    std::cout << "Inside function: " << x << std::endl;
+}
+
+int main() {
+    int num = 5;
+    modifyValue(num);
+    std::cout << "After function: " << num << std::endl;
+    // Output:
+    // Inside function: 100
+    // After function: 5
+}
+```
+#### По ссылке (работа с оригиналом):
+```cpp
+void modifyReference(int& x) {
+    x = 100; // Изменяется оригинальная переменная
+    std::cout << "Inside function: " << x << std::endl;
+}
+
+int main() {
+    int num = 5;
+    modifyReference(num);
+    std::cout << "After function: " << num << std::endl;
+    // Output:
+    // Inside function: 100
+    // After function: 100
+}
+```
+#### По константной ссылке (только чтение):
+```cpp
+void printLargeObject(const std::string& str) {
+    // str = "new"; // Ошибка! Нельзя изменять
+    std::cout << str << std::endl;
+}
+
+int main() {
+    std::string text = "Very long text...";
+    printLargeObject(text); // Эффективно, без копирования
+}
+```
+### 4. Сравнение способов передачи
+```cpp
+#include <iostream>
+#include <vector>
+
+// По значению - дорого для больших объектов
+void processByValue(std::vector<int> data) {
+    // Создается полная копия вектора
+}
+
+// По ссылке - эффективно, можно изменять
+void processByReference(std::vector<int>& data) {
+    data.push_back(42); // Изменяет оригинал
+}
+
+// По константной ссылке - эффективно, защита от изменений
+void processByConstReference(const std::vector<int>& data) {
+    // data.push_back(42); // Ошибка компиляции!
+    std::cout << "Size: " << data.size() << std::endl;
+}
+
+int main() {
+    std::vector<int> numbers = {1, 2, 3};
+    
+    processByValue(numbers);    // Дорого - копирование
+    processByReference(numbers); // Эффективно, меняет numbers
+    processByConstReference(numbers); // Эффективно, безопасно
+}
+```
+### 5. Возвращение значений
+##### Возврат по значению:
+```cpp
+std::vector<int> createVector() {
+    return std::vector<int>{1, 2, 3}; // Копирование (но часто оптимизируется)
+}
+```
+##### Возврат по ссылке (осторожно!):
+```cpp
+int& getElement(std::vector<int>& vec, size_t index) {
+    return vec[index]; // Возвращает ссылку на элемент
+}
+
+// ОПАСНО - возврат ссылки на локальную переменную!
+// int& badFunction() {
+//     int x = 5;
+//     return x; // x уничтожается при выходе из функции!
+// }
+```
+##### Возврат по константной ссылке:
+```cpp
+const std::string& getConstantString() {
+    static std::string str = "constant"; // static живет до конца программы
+    return str;
+}
+```
+### 6. Анонимные функции (лямбды)
+##### Базовая лямбда:
 
 ___
 ## 8) Указатели умные и сырые.
@@ -750,8 +1066,87 @@ int main() {
 }
 ```
 ### 2. 🧠 Умные указатели 
-#### std::unique_ptr - эксклюзивное владение:
 
+**Умные указатели** - это "умные помощники", которые автоматически убирают за собой мусор (освобождают память). Они как ответственные няни для ваших данных!
+
+#### 1. std::unique_ptr - "Единственный хозяин"
+
+###### Как работает:
+- Может быть только ОДИН владелец объекта
+- Нельзя копировать, только передавать владение
+- Когда "хозяин" уходит, объект автоматически удаляется
+
+```cpp
+#include <memory>
+
+// Создаем уникального владельца для числа
+std::unique_ptr<int> myNumber = std::make_unique<int>(42);
+
+// Можно использовать как обычный указатель
+std::cout << *myNumber << std::endl; // 42
+
+// НЕЛЬЗЯ скопировать!
+// std::unique_ptr<int> copy = myNumber; // ОШИБКА!
+
+// Можно только передать владение
+std::unique_ptr<int> newOwner = std::move(myNumber);
+// Теперь myNumber пустой, newOwner владеет числом 42
+```
+#### 2. std::shared_ptr - "Совместное владение"
+###### Как работает:
+- Может быть несколько владельцев одного объекта
+- Ведут учет: считают сколько у объекта "хозяев"
+- Удаляют объект, когда последний "хозяин" уходит
+
+```cpp
+#include <memory>
+
+// Создаем объект с совместным владением
+std::shared_ptr<int> owner1 = std::make_shared<int>(100);
+
+{
+    std::shared_ptr<int> owner2 = owner1; // Теперь два владельца
+    
+    std::cout << "Владельцев: " << owner1.use_count() << std::endl; // 2
+    std::cout << "Значение: " << *owner2 << std::endl; // 100
+} // owner2 уходит - владельцев становится 1
+
+// Объект еще жив, им владеет owner1
+std::cout << "Владельцев: " << owner1.use_count() << std::endl; // 1
+// owner1 уходит - объект удаляется
+``` 
+
+#### 3. `std::weak_ptr` - "Наблюдатель" 👀
+
+###### Как работает: 
+- **Смотрит** на объект, но **не владеет** им
+- Не мешает объекту удалиться
+- Может проверить, жив ли еще объект
+
+**Простая аналогия:** Вы смотрите на дом через окно. Вы видите, есть ли там свет, но не можете войти без ключа.
+
+```cpp
+#include <memory>
+
+std::shared_ptr<int> shared = std::make_shared<int>(50);
+std::weak_ptr<int> observer = shared; // Просто наблюдаем
+
+// Проверяем, жив ли объект
+if (auto temp = observer.lock()) {
+    std::cout << "Объект жив: " << *temp << std::endl;
+} else {
+    std::cout << "Объект удален" << std::endl;
+}
+
+shared.reset(); // Удаляем объект
+
+// Проверяем снова
+if (auto temp = observer.lock()) {
+    std::cout << "Объект жив" << std::endl;
+} else {
+    std::cout << "Объект удален" << std::endl; // Выведется это
+}
+```
 
 ___
 ## 9) Структуры,  перечисления, классы, спецификация доступа. Инкапсуляция и параметрический полиморфизм. Заголовочные файлы и фалы реализации
