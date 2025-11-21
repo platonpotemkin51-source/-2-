@@ -1113,7 +1113,7 @@ int main() {
     return 0;
 }
 ```
-##### Изменение через указатель:
+##### Изменение через указатель :
 ```cpp
 #include <iostream>
 
@@ -1132,31 +1132,7 @@ int main() {
     return 0;
 }
 ```
-#### Указательная арифметика
-##### Работа с массивами:
 
-```cpp
-#include <iostream>
-
-int main() {
-    int numbers[5] = {10, 20, 30, 40, 50};
-    int* ptr = numbers; // ptr указывает на первый элемент
-    
-    std::cout << "Первый элемент: " << *ptr << std::endl; // 10
-    
-    // Перемещение по массиву
-    ptr++; // переходим к следующему элементу
-    std::cout << "Второй элемент: " << *ptr << std::endl; // 20
-    
-    ptr += 2; // переходим на 2 элемента вперед
-    std::cout << "Четвертый элемент: " << *ptr << std::endl; // 40
-    
-    ptr--; // возвращаемся на один элемент назад
-    std::cout << "Третий элемент: " << *ptr << std::endl; // 30
-    
-    return 0;
-}
-```
 ### 2. 🧠 Умные указатели 
 
 **Умные указатели** - это "умные помощники", которые автоматически убирают за собой мусор (освобождают память). Они как ответственные няни для ваших данных!
@@ -1239,6 +1215,35 @@ if (auto temp = observer.lock()) {
     std::cout << "Объект удален" << std::endl; // Выведется это
 }
 ```
+
+### Сравнительная таблица указателей
+
+| Свойство | `unique_ptr` | `shared_ptr` | Сырые указатели |
+|----------|--------------|--------------|-----------------|
+| **Владение** | Единоличное | Разделяемое | Ручное |
+| **Автоочистка** | ✅ Да | ✅ Да | ❌ Нет |
+| **Производительность** | 🟢 Высокая | 🟡 Средняя | 🟢 Максимальная |
+| **Безопасность** | ✅ Высокая | ✅ Высокая | ❌ Низкая |
+| **Копирование** | ❌ Запрещено | ✅ Разрешено | ✅ Разрешено |
+| **Потокобезопасность** | ❌ Нет | ✅ Счетчик ссылок | ❌ Нет |
+| **Размер (x64)** | 8 байт | 16 байт | 8 байт |
+
+#### Ключевые различия:
+
+##### 🟢 `unique_ptr`
+- **Плюсы:** Максимальная производительность, минимальный overhead
+- **Минусы:** Нельзя копировать
+- **Использование:** "Единственный владелец" ресурса
+
+##### 🟡 `shared_ptr`  
+- **Плюсы:** Разделяемое владение, автоматическая сборка
+- **Минусы:** Overhead счетчика ссылок, риск циклических ссылок
+- **Использование:** Совместное владение ресурсом
+
+##### 🔴 Сырые указатели
+- **Плюсы:** Максимальная производительность, полный контроль
+- **Минусы:** Риск утечек памяти, висячих указателей
+- **Использование:** Только для наблюдения, критические участки кода
 
 ___
 ## 9) Структуры,  перечисления, классы, спецификация доступа. Инкапсуляция и параметрический полиморфизм. Заголовочные файлы и фалы реализации
@@ -1533,98 +1538,7 @@ int main() {
     std::cout << "Doubles equal: " << areEqual(1.00001, 1.00002) << std::endl; // 1 (true)
 }
 ```
-#### Шаблонные классы:
-```cpp
-#include <iostream>
-#include <vector>
-#include <stdexcept>
 
-// Класс-контейнер для ЛЮБОГО типа
-template<typename T>
-class Stack {
-private:
-    std::vector<T> elements;
-    size_t capacity;
-
-public:
-    Stack(size_t maxSize = 100) : capacity(maxSize) {}
-    
-    // Инкапсуляция + параметрический полиморфизм
-    void push(const T& element) {
-        if (elements.size() >= capacity) {
-            throw std::overflow_error("Stack is full");
-        }
-        elements.push_back(element);
-    }
-    
-    T pop() {
-        if (elements.empty()) {
-            throw std::runtime_error("Stack is empty");
-        }
-        T top = elements.back();
-        elements.pop_back();
-        return top;
-    }
-    
-    const T& peek() const {
-        if (elements.empty()) {
-            throw std::runtime_error("Stack is empty");
-        }
-        return elements.back();
-    }
-    
-    bool isEmpty() const {
-        return elements.empty();
-    }
-    
-    size_t size() const {
-        return elements.size();
-    }
-};
-
-// Специализация для bool (оптимизация памяти)
-template<>
-class Stack<bool> {
-private:
-    std::vector<unsigned char> bits; // Храним биты
-    size_t capacity;
-
-public:
-    Stack(size_t maxSize = 100) : capacity(maxSize) {}
-    
-    void push(bool element) {
-        if (bits.size() * 8 >= capacity) {
-            throw std::overflow_error("Stack is full");
-        }
-        // Специфичная логика для bool
-        if (bits.empty() || (bits.back() & 1) != 0) {
-            bits.push_back(element ? 1 : 0);
-        } else {
-            // Оптимизированное хранение...
-        }
-    }
-    
-    // ... остальные методы с оптимизацией для bool
-};
-
-int main() {
-    // Один интерфейс - разные типы
-    Stack<int> intStack;
-    Stack<std::string> stringStack;
-    Stack<double> doubleStack(50); // с ограничением размера
-    
-    intStack.push(42);
-    intStack.push(100);
-    
-    stringStack.push("hello");
-    stringStack.push("world");
-    
-    doubleStack.push(3.14);
-    
-    std::cout << "Int stack top: " << intStack.peek() << std::endl;
-    std::cout << "String stack top: " << stringStack.peek() << std::endl;
-}
-```
 ### Заголовочные файлы и фалы реализации
 #### 1. Основная концепция
 
@@ -1779,5 +1693,100 @@ int main() {
     cout << "Max of 3.14 and 2.71: " << max(3.14, 2.71) << endl;
     
     return 0;
+}
+```
+
+
+---
+#### !!! ДОП ИФНФА(еще не проходили) !!! Шаблонные классы:
+```cpp
+#include <iostream>
+#include <vector>
+#include <stdexcept>
+
+// Класс-контейнер для ЛЮБОГО типа
+template<typename T>
+class Stack {
+private:
+    std::vector<T> elements;
+    size_t capacity;
+
+public:
+    Stack(size_t maxSize = 100) : capacity(maxSize) {}
+    
+    // Инкапсуляция + параметрический полиморфизм
+    void push(const T& element) {
+        if (elements.size() >= capacity) {
+            throw std::overflow_error("Stack is full");
+        }
+        elements.push_back(element);
+    }
+    
+    T pop() {
+        if (elements.empty()) {
+            throw std::runtime_error("Stack is empty");
+        }
+        T top = elements.back();
+        elements.pop_back();
+        return top;
+    }
+    
+    const T& peek() const {
+        if (elements.empty()) {
+            throw std::runtime_error("Stack is empty");
+        }
+        return elements.back();
+    }
+    
+    bool isEmpty() const {
+        return elements.empty();
+    }
+    
+    size_t size() const {
+        return elements.size();
+    }
+};
+
+// Специализация для bool (оптимизация памяти)
+template<>
+class Stack<bool> {
+private:
+    std::vector<unsigned char> bits; // Храним биты
+    size_t capacity;
+
+public:
+    Stack(size_t maxSize = 100) : capacity(maxSize) {}
+    
+    void push(bool element) {
+        if (bits.size() * 8 >= capacity) {
+            throw std::overflow_error("Stack is full");
+        }
+        // Специфичная логика для bool
+        if (bits.empty() || (bits.back() & 1) != 0) {
+            bits.push_back(element ? 1 : 0);
+        } else {
+            // Оптимизированное хранение...
+        }
+    }
+    
+    // ... остальные методы с оптимизацией для bool
+};
+
+int main() {
+    // Один интерфейс - разные типы
+    Stack<int> intStack;
+    Stack<std::string> stringStack;
+    Stack<double> doubleStack(50); // с ограничением размера
+    
+    intStack.push(42);
+    intStack.push(100);
+    
+    stringStack.push("hello");
+    stringStack.push("world");
+    
+    doubleStack.push(3.14);
+    
+    std::cout << "Int stack top: " << intStack.peek() << std::endl;
+    std::cout << "String stack top: " << stringStack.peek() << std::endl;
 }
 ```
