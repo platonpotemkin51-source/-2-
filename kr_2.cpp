@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <cmath>
 #include <stdexcept>
 #include <vector>
@@ -93,7 +93,7 @@ struct Group {
 	}
 };
 
-// -----------------------------------------------------------
+// ------------------------------------------------------------------------
 
 #include <algorithm>
 
@@ -102,21 +102,23 @@ struct City {
     std::string name;
     int population;
     bool hasAirport;
-    std::vector<std::string> districts;
+    std::vector<std::string> airports;
 
     City(const std::string& n, int pop, bool airport, const std::vector<std::string>& dists)
-        : name(n), population(pop), hasAirport(airport), districts(dists) {
+        : name(n), population(pop), hasAirport(airport), airports(dists) {
     }
 
     // Расчёт рейтинга 
     double calculateRating() const {
         double rating = 0.0;
 
-        rating += (population + 1)/10000; 
+        rating += population/10000; 
 
         // +100 баллов за каждый аэропорт
+
+
         if (hasAirport) {
-            rating += 100.0* districts.size();
+            rating += 100.0* airports.size();
         }
 
         return rating;
@@ -130,7 +132,7 @@ struct City {
         std::cout << "Город: " << name
             << ", Население: " << population
             << ", Наличие аэропорта: " << (hasAirport ? "есть" : "нет")
-            << ", Количество аэропортов: " << districts.size()
+            << ", Количество аэропортов: " << airports.size()
             << ", Рейтинг: " << calculateRating() << "\n";
     }
 };
@@ -181,17 +183,16 @@ void bench_2() {
     auto Sm = City("Смоленск", 330000, false, {});
     auto Vg = City("Воркута", 60000, true, { "Воркута" });
 
-    // Вектор городов
     std::vector<City> topCities = { Ms, Sm, Vg };
 
     // Сортируем по рейтингу (по убыванию — самый лучший первый)
     std::sort(topCities.begin(), topCities.end());
 
     // Выводим результаты
-    std::cout << "=== Рейтинг городов по качеству жизни ===\n";
+    /*std::cout << "=== Рейтинг городов по качеству жизни ===\n";
     for (const auto& city : topCities) {
         city.printInfo();
-    }
+    }*/
 
     // Самый лучший город
     auto& best = topCities.front();
@@ -202,7 +203,7 @@ void bench_2() {
 int main() {
     
 	//bench_1();
-	//bench_2();
+	bench_2();
 
     return 0;
 }
